@@ -72,6 +72,27 @@ public class BookController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Get books by author")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found books for author",
+                    content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ResponseBodyDTO.class))}),
+            @ApiResponse(responseCode = "404", description = "No books found for author",
+                    content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ResponseBodyDTO.class))})
+    })
+    @GetMapping("/author/{name}")
+    public ResponseEntity<ResponseBodyDTO> getBookByAuthor(@PathVariable String name) {
+        List<Book> books = bookService.getBookByAuthor(name);
+
+        ResponseBodyDTO response = ResponseBodyDTO.builder()
+                .status(200)
+                .message("Books retrieved successfully.")
+                .data(books)
+                .build();
+
+        logger.info("Books for {} retrieved successfully.", name);
+        return ResponseEntity.ok(response);
+    }
+
     @Operation(summary = "Create a book")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Book was created",

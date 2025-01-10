@@ -34,6 +34,15 @@ public class BookService {
         });
     }
 
+    public List<Book> getBookByAuthor(String author) {
+        List<Book> books = bookRepository.findByAuthor(author);
+        if (books.isEmpty()) {
+            logger.info("No books found for author: {}", author);
+            throw new BookNotFoundException("No books found for the given author.");
+        }
+        return books;
+    }
+
     public Book createBook(Book book) {
         return bookRepository.save(book);
     }
