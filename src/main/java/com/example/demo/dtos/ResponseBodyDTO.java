@@ -18,6 +18,7 @@ public class ResponseBodyDTO {
     private String message;
     private List<FieldErrorDTO> errors;
     private List<Book> data;
+    private MetadataDTO metadata;
 
     @Data
     @Builder
@@ -25,5 +26,15 @@ public class ResponseBodyDTO {
     public static class FieldErrorDTO {
         private String field;
         private String message;
+    }
+
+    @Data
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public static class MetadataDTO {
+        private Integer page;
+        private Integer size;
+        private Integer totalPages;
+        private Long totalItems;
     }
 }

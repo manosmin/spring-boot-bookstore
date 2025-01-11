@@ -1,13 +1,13 @@
 package com.example.demo.repositories;
 import com.example.demo.models.Book;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long> {
-    List<Book> findByAuthor(String author);
+    Page<Book> findByAuthor(String author, Pageable pageable);
 
-    List<Book> findByTitleContainingIgnoreCase(String title);
+    Page<Book> findByTitleContainingIgnoreCase(String title, Pageable pageable);
 }

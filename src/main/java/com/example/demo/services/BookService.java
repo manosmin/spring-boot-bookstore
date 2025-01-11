@@ -6,9 +6,9 @@ import com.example.demo.repositories.BookRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class BookService {
@@ -23,8 +23,8 @@ public class BookService {
         this.bookRepository = bookRepository;
     }
 
-    public List<Book> getAllBooks() {
-        return bookRepository.findAll();
+    public Page<Book> getAllBooks(Pageable pageable) {
+        return bookRepository.findAll(pageable);
     }
 
     public Book getBookById(Long id) {
@@ -34,8 +34,8 @@ public class BookService {
         });
     }
 
-    public List<Book> getBookByAuthor(String author) {
-        List<Book> books = bookRepository.findByAuthor(author);
+    public Page<Book> getBookByAuthor(String author, Pageable pageable) {
+        Page<Book> books = bookRepository.findByAuthor(author, pageable);
         if (books.isEmpty()) {
             logger.info("No books found for author: {}", author);
             throw new BookNotFoundException("No books found for the given author.");
@@ -43,8 +43,8 @@ public class BookService {
         return books;
     }
 
-    public List<Book> getBookByTitle(String name) {
-        List<Book> books = bookRepository.findByTitleContainingIgnoreCase(name);
+    public Page<Book> getBookByTitle(String name, Pageable pageable) {
+        Page<Book> books = bookRepository.findByTitleContainingIgnoreCase(name, pageable);
         if (books.isEmpty()) {
             logger.info("No books found for title: {}", name);
             throw new BookNotFoundException("No books found with the given title.");

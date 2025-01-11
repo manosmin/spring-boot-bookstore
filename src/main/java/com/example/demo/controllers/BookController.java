@@ -12,13 +12,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Collections;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/books")
@@ -37,16 +39,27 @@ public class BookController {
             content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ResponseBodyDTO.class))}),
     })
     @GetMapping
-    public ResponseEntity<ResponseBodyDTO> getAllBooks() {
-        List<Book> books = bookService.getAllBooks();
+    public ResponseEntity<ResponseBodyDTO> getAllBooks(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Book> books = bookService.getAllBooks(pageable);
+
+        ResponseBodyDTO.MetadataDTO paginationInfo = ResponseBodyDTO.MetadataDTO.builder()
+                .page(books.getNumber() + 1)
+                .size(size)
+                .totalPages(books.getTotalPages())
+                .totalItems(books.getTotalElements())
+                .build();
 
         ResponseBodyDTO response = ResponseBodyDTO.builder()
                 .status(200)
                 .message("Books retrieved successfully.")
-                .data(books)
+                .data(books.getContent())
+                .metadata(paginationInfo)
                 .build();
 
-        logger.info("Books retrieved successfully. Total books: {}", books.size());
+        logger.info("Books retrieved successfully. Total books: {}", books.getContent().size());
         return ResponseEntity.ok(response);
     }
 
@@ -81,13 +94,24 @@ public class BookController {
                     content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ResponseBodyDTO.class))})
     })
     @GetMapping("/author/{name}")
-    public ResponseEntity<ResponseBodyDTO> getBookByAuthor(@PathVariable String name) {
-        List<Book> books = bookService.getBookByAuthor(name);
+    public ResponseEntity<ResponseBodyDTO> getBookByAuthor(@PathVariable String name,
+       @RequestParam(defaultValue = "0") int page,
+       @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Book> books = bookService.getBookByAuthor(name, pageable);
+
+        ResponseBodyDTO.MetadataDTO paginationInfo = ResponseBodyDTO.MetadataDTO.builder()
+                .page(books.getNumber() + 1)
+                .size(size)
+                .totalPages(books.getTotalPages())
+                .totalItems(books.getTotalElements())
+                .build();
 
         ResponseBodyDTO response = ResponseBodyDTO.builder()
                 .status(200)
                 .message("Books retrieved successfully.")
-                .data(books)
+                .data(books.getContent())
+                .metadata(paginationInfo)
                 .build();
 
         logger.info("Books for {} retrieved successfully.", name);
@@ -104,13 +128,25 @@ public class BookController {
                     content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ResponseBodyDTO.class))})
     })
     @GetMapping("/title/{name}")
-    public ResponseEntity<ResponseBodyDTO> getBookByTitle(@PathVariable @Valid @Size(min = 3, message = "Title must be at least 3 characters long.") String name) {
-        List<Book> books = bookService.getBookByTitle(name);
+    public ResponseEntity<ResponseBodyDTO> getBookByTitle(
+        @PathVariable @Valid @Size(min = 3, message = "Title must be at least 3 characters long.") String name,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Book> books = bookService.getBookByTitle(name, pageable);
+
+        ResponseBodyDTO.MetadataDTO paginationInfo = ResponseBodyDTO.MetadataDTO.builder()
+                .page(books.getNumber() + 1)
+                .size(size)
+                .totalPages(books.getTotalPages())
+                .totalItems(books.getTotalElements())
+                .build();
 
         ResponseBodyDTO response = ResponseBodyDTO.builder()
                 .status(200)
                 .message("Books retrieved successfully.")
-                .data(books)
+                .data(books.getContent())
+                .metadata(paginationInfo)
                 .build();
 
         logger.info("Books with title {} retrieved successfully.", name);
