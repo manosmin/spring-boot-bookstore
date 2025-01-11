@@ -2,6 +2,7 @@ package com.example.demo.middlewares;
 
 import com.example.demo.dtos.ResponseBodyDTO;
 import com.example.demo.exceptions.BookNotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -43,6 +44,22 @@ public class GlobalExceptionHandler {
                             .message(message)
                             .build();
                 })
+                .collect(Collectors.toList());
+        ResponseBodyDTO response = ResponseBodyDTO.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message("Validation failed.")
+                .errors(errors)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler({ConstraintViolationException.class})
+    public ResponseEntity<ResponseBodyDTO> handleConstraintViolationException(ConstraintViolationException ex) {
+        List<ResponseBodyDTO.FieldErrorDTO> errors = ex.getConstraintViolations().stream()
+                .map(violation -> ResponseBodyDTO.FieldErrorDTO.builder()
+                        .message(violation.getMessage())
+                        .build())
                 .collect(Collectors.toList());
         ResponseBodyDTO response = ResponseBodyDTO.builder()
                 .status(HttpStatus.BAD_REQUEST.value())

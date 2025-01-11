@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -90,6 +91,29 @@ public class BookController {
                 .build();
 
         logger.info("Books for {} retrieved successfully.", name);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Get books by title")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found books with title",
+                    content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ResponseBodyDTO.class))}),
+            @ApiResponse(responseCode = "400", description = "Invalid title parameter",
+                    content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ResponseBodyDTO.class))}),
+            @ApiResponse(responseCode = "404", description = "No books found for the given title",
+                    content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ResponseBodyDTO.class))})
+    })
+    @GetMapping("/title/{name}")
+    public ResponseEntity<ResponseBodyDTO> getBookByTitle(@PathVariable @Valid @Size(min = 3, message = "Title must be at least 3 characters long.") String name) {
+        List<Book> books = bookService.getBookByTitle(name);
+
+        ResponseBodyDTO response = ResponseBodyDTO.builder()
+                .status(200)
+                .message("Books retrieved successfully.")
+                .data(books)
+                .build();
+
+        logger.info("Books with title {} retrieved successfully.", name);
         return ResponseEntity.ok(response);
     }
 

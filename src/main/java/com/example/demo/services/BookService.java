@@ -43,6 +43,15 @@ public class BookService {
         return books;
     }
 
+    public List<Book> getBookByTitle(String name) {
+        List<Book> books = bookRepository.findByTitleContainingIgnoreCase(name);
+        if (books.isEmpty()) {
+            logger.info("No books found for title: {}", name);
+            throw new BookNotFoundException("No books found with the given title.");
+        }
+        return books;
+    }
+
     public Book createBook(Book book) {
         return bookRepository.save(book);
     }
