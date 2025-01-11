@@ -1,6 +1,7 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dtos.ResponseBodyDTO;
+import com.example.demo.exceptions.PageNotFoundException;
 import com.example.demo.models.Book;
 import com.example.demo.services.BookService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -40,10 +42,14 @@ public class BookController {
     })
     @GetMapping
     public ResponseEntity<ResponseBodyDTO> getAllBooks(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        @RequestParam(defaultValue = "1") @Min(1) int page,
+        @RequestParam(defaultValue = "10") @Min(5) int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
         Page<Book> books = bookService.getAllBooks(pageable);
+
+        if (page > books.getTotalPages()) {
+            throw new PageNotFoundException("Page does not exist.");
+        }
 
         ResponseBodyDTO.MetadataDTO paginationInfo = ResponseBodyDTO.MetadataDTO.builder()
                 .page(books.getNumber() + 1)
@@ -95,10 +101,14 @@ public class BookController {
     })
     @GetMapping("/author/{name}")
     public ResponseEntity<ResponseBodyDTO> getBookByAuthor(@PathVariable String name,
-       @RequestParam(defaultValue = "0") int page,
-       @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
+       @RequestParam(defaultValue = "1") @Min(1) int page,
+       @RequestParam(defaultValue = "10") @Min(5) int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
         Page<Book> books = bookService.getBookByAuthor(name, pageable);
+
+        if (page > books.getTotalPages()) {
+            throw new PageNotFoundException("Page does not exist.");
+        }
 
         ResponseBodyDTO.MetadataDTO paginationInfo = ResponseBodyDTO.MetadataDTO.builder()
                 .page(books.getNumber() + 1)
@@ -130,10 +140,14 @@ public class BookController {
     @GetMapping("/title/{name}")
     public ResponseEntity<ResponseBodyDTO> getBookByTitle(
         @PathVariable @Valid @Size(min = 3, message = "Title must be at least 3 characters long.") String name,
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        @RequestParam(defaultValue = "1") @Min(1) int page,
+        @RequestParam(defaultValue = "10") @Min(5) int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
         Page<Book> books = bookService.getBookByTitle(name, pageable);
+
+        if (page > books.getTotalPages()) {
+            throw new PageNotFoundException("Page does not exist.");
+        }
 
         ResponseBodyDTO.MetadataDTO paginationInfo = ResponseBodyDTO.MetadataDTO.builder()
                 .page(books.getNumber() + 1)

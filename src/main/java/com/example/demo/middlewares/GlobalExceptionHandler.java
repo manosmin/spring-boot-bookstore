@@ -2,6 +2,7 @@ package com.example.demo.middlewares;
 
 import com.example.demo.dtos.ResponseBodyDTO;
 import com.example.demo.exceptions.BookNotFoundException;
+import com.example.demo.exceptions.PageNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +22,9 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
 
-    @ExceptionHandler({BookNotFoundException.class})
+    @ExceptionHandler({BookNotFoundException.class, PageNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<ResponseBodyDTO> handleBookNotFoundException(BookNotFoundException ex) {
+    public ResponseEntity<ResponseBodyDTO> handleBookNotFoundException(Exception ex) {
         ResponseBodyDTO response = ResponseBodyDTO.builder()
                 .status(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -55,11 +56,17 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({ConstraintViolationException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ResponseBodyDTO> handleConstraintViolationException(ConstraintViolationException ex) {
         List<ResponseBodyDTO.FieldErrorDTO> errors = ex.getConstraintViolations().stream()
-                .map(violation -> ResponseBodyDTO.FieldErrorDTO.builder()
-                        .message(violation.getMessage())
-                        .build())
+                .map(violation -> {
+                    String field = violation.getPropertyPath().toString();
+                    String fieldName = field.contains(".") ? field.substring(field.lastIndexOf('.') + 1) : field;
+                    return ResponseBodyDTO.FieldErrorDTO.builder()
+                            .field(fieldName)
+                            .message(violation.getMessage())
+                            .build();
+                })
                 .collect(Collectors.toList());
         ResponseBodyDTO response = ResponseBodyDTO.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
